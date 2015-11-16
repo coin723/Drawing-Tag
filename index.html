@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	</head>
+	<body>
+		<script>
+			d3.csv("filename.csv", function(data) {
+				//Define basic variables
+				var margin = {top: 50, right: 50, bottom: 50, left: 50};
+				var width = window.innerWidth - margin.right - margin.left;
+				var height = width * 3 / 4 - margin.top - margin.bottom;
+
+				//Draw canvas
+				var svg = d3.select("body")
+					.append("svg")
+					.attr("id", "container")
+					.attr("width", width + margin.right + margin.left)
+					.attr("height", height + margin.top + margin.bottom);
+
+				//Make nodes data
+				var nodes_drawing;
+
+				var nodes_tag;
+
+				//Make link data
+				var 
+
+				//Define scale
+				var rScale = d3.scale.sqrt()
+					.domain([d3.min(data, function(d) { return d.tag_count; }), 
+						d3.max(data. function(d) { return d.tag_count; })])
+					.range([5, 20]);
+
+				//Append drawing and tag groups
+				var drawing_g = svg.selectAll(".drawing")
+					.data(nodes_drawing)
+					.enter()
+					.append("g")
+					.attr("class", function(d) {
+						return "drawing drawing_code_" + d.drawing_code;
+					});
+
+				var tag_g = svg.selectAll(".tag")
+					.data(nodes_tag)
+					.enter()
+					.append("g")
+					.attr("class", function(d) {
+						return "tag tag_code_" + d.tag_code;
+					});
+
+				//Append 
+			});
+		</script>
+	</body>
+</html>
