@@ -3,6 +3,7 @@
 	<head>
 		<title></title>
 		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+		<link type="text/css" rel="stylesheet" href="stylesheet.css" />
 	</head>
 	<body>
 		<script>
@@ -25,13 +26,15 @@
 				var nodes_tag;
 
 				//Make link data
-				var 
+				var nodes_link;
 
 				//Define scale
+				var r_min = 5;
+				var r_max = 20;
 				var rScale = d3.scale.sqrt()
 					.domain([d3.min(data, function(d) { return d.tag_count; }), 
 						d3.max(data. function(d) { return d.tag_count; })])
-					.range([5, 20]);
+					.range([r_min, r_max]);
 
 				//Append drawing and tag groups
 				var drawing_g = svg.selectAll(".drawing")
@@ -50,7 +53,17 @@
 						return "tag tag_code_" + d.tag_code;
 					});
 
-				//Append 
+				//Append drawing nodes
+				var r_basic = 10;
+				drawing_g.append("circle")
+					.attr("class", "node drawing")
+					.attr("cx", function(d){
+						return;
+					})
+					.attr("cy", function(d) {
+						return;
+					})
+					.attr("r", r_basic);
 			});
 		</script>
 	</body>
