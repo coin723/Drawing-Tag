@@ -53,7 +53,7 @@
 						return "tag tag_code_" + d.tag_code;
 					});
 
-				//Append drawing nodes
+				//Append drawing nodes and text
 				var r_basic = 10;
 				drawing_g.append("circle")
 					.attr("class", "node drawing")
@@ -64,6 +64,37 @@
 						return;
 					})
 					.attr("r", r_basic);
+				drawing_g.append("text")
+					.attr("class", "name drawing")
+					.text(function(d) {
+						return d.name_drawing;
+					});
+
+				//Append tag nodes
+				tag_g.append("circle")
+					.attr("class", "node tag")
+					.attr("cx", function(d) {
+						return;
+					})
+					.attr("cy", function(d) {
+						return;
+					})
+					.attr("r", function(d) {
+						return rScale(d.tag_count);
+					});
+				tag_g.append("text")
+					.attr("class", "name tag")
+					.text(function(d) {
+						return d.name_tag;
+					});
+
+				//Append links
+				svg.selectAll(".link")
+					.data(nodes_link)
+					.enter()
+					.append("line")
+					.attr("class", "link")
+					.attr("x1", )
 			});
 		</script>
 	</body>
