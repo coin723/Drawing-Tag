@@ -3,7 +3,7 @@
 	<head>
 		<title></title>
 		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<link type="text/css" rel="stylesheet" href="stylesheet.css" />
+		<link type="text/css" rel="stylesheet" href="CSS/stylesheet.css" />
 	</head>
 	<body>
 		<script>
@@ -20,6 +20,12 @@
 					.attr("width", width + margin.right + margin.left)
 					.attr("height", height + margin.top + margin.bottom);
 
+				//Create nest operator
+				var nesting = d3.nest()
+					.key(function(d) {
+						return d.
+					})
+
 				//Make nodes data
 				var nodes_drawing;
 
@@ -32,8 +38,8 @@
 				var r_min = 5;
 				var r_max = 20;
 				var rScale = d3.scale.sqrt()
-					.domain([d3.min(data, function(d) { return d.tag_count; }), 
-						d3.max(data. function(d) { return d.tag_count; })])
+					.domain([d3.min(data, function(d) { return d.degree; }), 
+						d3.max(data, function(d) { return d.degree; })])
 					.range([r_min, r_max]);
 
 				//Append drawing and tag groups
@@ -80,7 +86,7 @@
 						return;
 					})
 					.attr("r", function(d) {
-						return rScale(d.tag_count);
+						return rScale(d.degree);
 					});
 				tag_g.append("text")
 					.attr("class", "name tag")
@@ -88,13 +94,13 @@
 						return d.name_tag;
 					});
 
-				//Append links
-				svg.selectAll(".link")
-					.data(nodes_link)
-					.enter()
-					.append("line")
-					.attr("class", "link")
-					.attr("x1", )
+				// //Append links
+				// svg.selectAll(".link")
+				// 	.data(nodes_link)
+				// 	.enter()
+				// 	.append("line")
+				// 	.attr("class", "link")
+				// 	.attr("x1", )
 			});
 		</script>
 	</body>
