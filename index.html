@@ -20,11 +20,24 @@
 					.attr("width", width + margin.right + margin.left)
 					.attr("height", height + margin.top + margin.bottom);
 
-				//Create nest operator
-				var nesting = d3.nest()
+				//Create nested maps
+				var map_drawing = d3.nest()
 					.key(function(d) {
-						return d.
+						return d.drawing_code;
 					})
+					.map(data, d3.map);
+
+				var nest_tag = d3.nest()
+					.key(function(d) {
+						return d.tag_code;
+					});
+
+				var map_tag = nest_tag.map(data, d3.map);
+
+				var map_degree = nest_tag.rollup(function(leaves) {
+						return leaves.length;
+					})
+					.map(data, d3.map);
 
 				//Make nodes data
 				var nodes_drawing;
