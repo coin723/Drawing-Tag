@@ -4,10 +4,11 @@
 		<title></title>
 		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<link type="text/css" rel="stylesheet" href="CSS/stylesheet.css" />
+		<meta charset="utf-8" />
 	</head>
 	<body>
 		<script>
-			d3.csv("filename.csv", function(data) {
+			d3.csv("drawing-tag.csv", function(data) {
 				//Define basic variables
 				var margin = {top: 50, right: 50, bottom: 50, left: 50};
 				var width = window.innerWidth - margin.right - margin.left;
@@ -20,16 +21,20 @@
 					.attr("width", width + margin.right + margin.left)
 					.attr("height", height + margin.top + margin.bottom);
 
+				//Convert drawing codes into numbers
+				data.forEach(function(d) {
+					d.drawing_code = +d.drawing_code;
+				});
+
 				//Create nested maps
-				var map_drawing = d3.nest()
+				var map_drawing_op = d3.nest()
 					.key(function(d) {
 						return d.drawing_code;
-					})
-					.map(data, d3.map);
+					});
 
 				var nest_tag = d3.nest()
 					.key(function(d) {
-						return d.tag_code;
+						return d.tag;
 					});
 
 				var map_tag = nest_tag.map(data, d3.map);
@@ -40,7 +45,26 @@
 					.map(data, d3.map);
 
 				//Make nodes data
-				var nodes_drawing;
+				var v_seg = 10;
+				var half_of_number = d3.max(data, function(d) { return d.drawing_code; }) / 2;
+				var cx_drawing = 200;
+				var nodes_drawing = map_drawing_op.rollup(function(leaves) {
+						var leaf = leaves[0];
+
+						var cx, cy;
+						leaf.drawing_code <= half_of_number ? (
+							cx = cx_drawing, cy = leaf.drawing_code * v_seg
+							) : (
+							cx = width - cx_drawing, cy = (leaf.drawing_code - half_of_number) * v_seg
+							);
+						
+						return {
+							"cx": cx,
+							"cy": cy
+						};
+					})
+					.map(data, d3.map);
+				// console.log(nodes_drawing.get(1));
 
 				var nodes_tag;
 
