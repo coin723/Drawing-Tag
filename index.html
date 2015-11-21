@@ -44,18 +44,26 @@
 					})
 					.map(data, d3.map);
 
+				//Define scale
+				var r_min = 5;
+				var r_max = 20;
+				var rScale = d3.scale.sqrt()
+					.domain([d3.min(data, function(d) { return d.degree; }), 
+						d3.max(data, function(d) { return d.degree; })])
+					.range([r_min, r_max]);
+
 				//Make nodes data
-				var v_seg = 10;
+				var h_seg = 10;
 				var half_of_number = d3.max(data, function(d) { return d.drawing_code; }) / 2;
 				var cx_drawing = 200;
 				var nodes_drawing = map_drawing_op.rollup(function(leaves) {
 						var leaf = leaves[0];
-
 						var cx, cy;
-						leaf.drawing_code <= half_of_number ? (
-							cx = cx_drawing, cy = leaf.drawing_code * v_seg
+
+						leaf.drawing_code > half_of_number ? (
+							cx = width - cx_drawing, cy = (leaf.drawing_code - half_of_number) * h_seg
 							) : (
-							cx = width - cx_drawing, cy = (leaf.drawing_code - half_of_number) * v_seg
+							cx = cx_drawing, cy = leaf.drawing_code * h_seg
 							);
 						
 						return {
@@ -64,20 +72,20 @@
 						};
 					})
 					.map(data, d3.map);
-				// console.log(nodes_drawing.get(1));
 
-				var nodes_tag;
+				var tags_xmin = cx_drawing + 
+				var nodes_tag = nest_tag.rollup(function(leaves) {
+						var leaf = leaves[0];
+						var cx, cy, r;
+
+						switch(leaf.tag_type) {
+							case "기술":
+
+						}
+					});
 
 				//Make link data
 				var nodes_link;
-
-				//Define scale
-				var r_min = 5;
-				var r_max = 20;
-				var rScale = d3.scale.sqrt()
-					.domain([d3.min(data, function(d) { return d.degree; }), 
-						d3.max(data, function(d) { return d.degree; })])
-					.range([r_min, r_max]);
 
 				//Append drawing and tag groups
 				var drawing_g = svg.selectAll(".drawing")
