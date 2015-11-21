@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="utf-8" />
 		<title></title>
 		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<link type="text/css" rel="stylesheet" href="CSS/stylesheet.css" />
-		<meta charset="utf-8" />
 	</head>
 	<body>
 		<script>
@@ -47,23 +47,28 @@
 				//Define scale
 				var r_min = 5;
 				var r_max = 20;
+				var array_degree = [];
+				map_degree.forEach(function(key, value) {
+					array_degree.push(value);
+				});
+
 				var rScale = d3.scale.sqrt()
-					.domain([d3.min(data, function(d) { return d.degree; }), 
-						d3.max(data, function(d) { return d.degree; })])
+					.domain(d3.extent(array_degree))
 					.range([r_min, r_max]);
 
 				//Make nodes data
-				var h_seg = 10;
-				var half_of_number = d3.max(data, function(d) { return d.drawing_code; }) / 2;
-				var cx_drawing = 200;
+				var half_of_number = Math.round(d3.max(data, function(d) { return d.drawing_code; }) / 2);
+				var cy_drawing = margin.top + 150;
+				var h_int = Math.round((width - margin.left - margin.right) / (half_of_number - 1));
+
 				var nodes_drawing = map_drawing_op.rollup(function(leaves) {
 						var leaf = leaves[0];
 						var cx, cy;
 
 						leaf.drawing_code > half_of_number ? (
-							cx = width - cx_drawing, cy = (leaf.drawing_code - half_of_number) * h_seg
+							cx = margin.left + (leaf.drawing_code - 1 - half_of_number) * h_int, cy = height - cy_drawing
 							) : (
-							cx = cx_drawing, cy = leaf.drawing_code * h_seg
+							cx = margin.left + (leaf.drawing_code - 1) * h_int, cy = cy_drawing
 							);
 						
 						return {
@@ -73,15 +78,37 @@
 					})
 					.map(data, d3.map);
 
-				var tags_xmin = cx_drawing + 
+				var tags_width = width - margin.left - margin.right;
+				var tags = {
+					"x0": margin.left,
+					"x1": margin.left + Math.round(tags_width / 3),
+					"x2": margin.left + Math.round(tags_width * 2 / 3),
+					"x3": margin.left + tags_width,
+					"y0": cy_drawing + 20,
+					"y1": height - cy_drawing - 20
+				};
+
 				var nodes_tag = nest_tag.rollup(function(leaves) {
 						var leaf = leaves[0];
 						var cx, cy, r;
 
+						cy = tags.y0 + (tags.y1 - tags.y0) * Math.random();
+
 						switch(leaf.tag_type) {
 							case "기술":
-
+								cx = tags.x0 + (tags.x1 - tags.x0) * Math.random();
+								break;
+							case "분석":
+								cx = tags.x1 + (tags.x2 - tags.x1) * Math.random();
+								break;
+							case "해석":
+								cx = tags.x2 + (tags.x3 - tags.x2) * Math.random();
+								break;
+							default:
+								cx = tags.x0 + (tags.x3 - tags.x0) * Math.random();
 						}
+
+						r = rScale(map_degree.get(leaf.tag));
 					});
 
 				//Make link data
