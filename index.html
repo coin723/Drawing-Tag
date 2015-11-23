@@ -84,7 +84,7 @@
 							"cy": cy,
 							"title": leaf.title,
 							"title_num": leaf.title_num,
-							"selector": ".title_num_" + leaf.title_num
+							"selector": ".title_num_" + leaf.title_num // for tooltip selection
 						};
 					})
 					.entries(data);
@@ -147,9 +147,6 @@
 						}
 					})
 					.entries(data);
-
-				//Make link data
-				// var nodes_link = ;
 
 				//Append drawing and tag groups
 				var drawing_g = svg.selectAll(".drawing")
@@ -274,13 +271,49 @@
 						this.classList.toggle("fix");
 					});
 
-				// //Append links
-				// svg.selectAll(".link")
-				// 	.data(nodes_link)
-				// 	.enter()
-				// 	.append("line")
-				// 	.attr("class", "link")
-				// 	.attr("x1", )
+				//Make link data
+				var nodes_link = [];
+
+				data.forEach(function(element, index) {
+					var selector_drawing = ".title_num_" + element.title_num + " circle";
+					var selector_tag = ".tag_num_" + element.tag_num + " circle";
+
+					var circle_drawing = document.querySelector(selector_drawing);
+					var circle_tag = document.querySelector(selector_tag);
+
+					var x1 = circle_drawing.getAttribute("cx");
+					var y1 = circle_drawing.getAttribute("cy");
+					var x2 = circle_tag.getAttribute("cx");
+					var y2 = circle_tag.getAttribute("cy");
+
+					nodes_link.push({
+						"x1": x1,
+						"y1": y1,
+						"x2": x2,
+						"y2": y2
+					});
+				});
+				console.log(nodes_link);
+
+				//Append links
+				svg.selectAll(".link")
+					.data(nodes_link)
+					.enter()
+					.append("line")
+					.attr("class", "link")
+					.attr("x1", function(d) {
+						return d.x1;
+					})
+					.attr("y1", function(d) {
+						return d.y1;
+					})
+					.attr("x2", function(d) {
+						return d.x2;
+					})
+					.attr("y2", function(d) {
+						return d.y2;
+					})
+					.attr("stroke", "#847385");
 			});
 		</script>
 	</body>
