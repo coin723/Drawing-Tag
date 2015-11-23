@@ -1,7 +1,39 @@
-.node {
-	fill: #000000;
+.drawing circle {
+	fill: #335600;
 }
 
-.name {
-	font-size: 12;
+.tag circle {
+/*	fill: #AA3356;
+*/}
+
+.tag text {
+/*	fill: cyan;
+*/}
+
+g {
+	opacity: 0.3;
+}
+
+.tooltip {
+	display: none;
+	background-color: #777777;
+	pointer-events: none;
+	position: absolute;
+	color: cyan;
+	border-radius: 5px;
+	opacity: 0.3;
+}
+
+.show {
+	display: block;
+	opacity: 0.7;
+}
+
+.fix {
+	display: block;
+	opacity: 1;
+}
+
+.tooltip.fix {
+	opacity: 0.7;
 }

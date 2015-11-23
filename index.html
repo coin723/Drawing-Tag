@@ -23,30 +23,30 @@
 
 				//Convert drawing codes into numbers
 				data.forEach(function(d) {
-					d.drawing_code = +d.drawing_code;
+					d.title_num = +d.title_num;
 				});
 
 				//Create nested maps
-				var map_drawing_op = d3.nest()
-					.key(function(d) {
-						return d.drawing_code;
-					});
-
 				var nest_tag = d3.nest()
 					.key(function(d) {
 						return d.tag;
 					});
 
-				var map_tag = nest_tag.map(data, d3.map);
-
-				var map_degree = nest_tag.rollup(function(leaves) {
-						return leaves.length;
+				var map_degree = d3.nest()
+					.key(function(d) {
+						return d.tag;
+					})
+					.rollup(function(leaves) {
+						return leaves[0].tag_count;
 					})
 					.map(data, d3.map);
 
 				//Define scale
 				var r_min = 5;
-				var r_max = 20;
+				var r_max = 30;
+				var t_min = r_min;
+				var t_max = r_max;
+
 				var array_degree = [];
 				map_degree.forEach(function(key, value) {
 					array_degree.push(value);
@@ -56,63 +56,100 @@
 					.domain(d3.extent(array_degree))
 					.range([r_min, r_max]);
 
-				//Make nodes data
-				var half_of_number = Math.round(d3.max(data, function(d) { return d.drawing_code; }) / 2);
-				var cy_drawing = margin.top + 150;
-				var h_int = Math.round((width - margin.left - margin.right) / (half_of_number - 1));
+				var tScale = d3.scale.sqrt()
+					.domain(d3.extent(array_degree))
+					.range([t_min, t_max]);
 
-				var nodes_drawing = map_drawing_op.rollup(function(leaves) {
+				//Make nodes data for drawings
+				var half_of_number = Math.round(d3.max(data, function(d) { return d.title_num; }) / 2);
+				var cy_drawing = margin.top + 30;
+				var h_int = Math.round(width / (half_of_number - 1));
+
+				var nodes_drawing = d3.nest()
+					.key(function(d) {
+						return d.title_num;
+					})
+					.rollup(function(leaves) {
 						var leaf = leaves[0];
 						var cx, cy;
 
-						leaf.drawing_code > half_of_number ? (
-							cx = margin.left + (leaf.drawing_code - 1 - half_of_number) * h_int, cy = height - cy_drawing
+						leaf.title_num > half_of_number ? (
+							cx = margin.left + (leaf.title_num - 1 - half_of_number) * h_int, cy = height - cy_drawing
 							) : (
-							cx = margin.left + (leaf.drawing_code - 1) * h_int, cy = cy_drawing
+							cx = margin.left + (leaf.title_num - 1) * h_int, cy = cy_drawing
 							);
 						
 						return {
 							"cx": cx,
-							"cy": cy
+							"cy": cy,
+							"title": leaf.title,
+							"title_num": leaf.title_num,
+							"selector": ".title_num_" + leaf.title_num
 						};
 					})
-					.map(data, d3.map);
+					.entries(data);
 
-				var tags_width = width - margin.left - margin.right;
+				// var temporary = d3.nest()
+				// 	.key(function(d) {
+				// 		return d.title_num;
+				// 	})
+				// 	.entries(data);
+				// console.log(temporary);
+
+				//make nodes data for tags
+				var area_margin = 50;
+				var tags_width = width;
 				var tags = {
 					"x0": margin.left,
-					"x1": margin.left + Math.round(tags_width / 3),
-					"x2": margin.left + Math.round(tags_width * 2 / 3),
-					"x3": margin.left + tags_width,
-					"y0": cy_drawing + 20,
-					"y1": height - cy_drawing - 20
+					"x1": margin.left + Math.round(tags_width / 2),
+					"x2": margin.left + tags_width,
+					"y0": cy_drawing + area_margin,
+					"y1": height - cy_drawing - area_margin
 				};
 
 				var nodes_tag = nest_tag.rollup(function(leaves) {
 						var leaf = leaves[0];
 						var cx, cy, r;
+						var colour_circle, colour_text;
+						var circle_explain = "#AA3356";
+						var circle_analysis = "#000088";
+						var text_explain = "#008800";
+						var text_analysis = "#234567";
 
 						cy = tags.y0 + (tags.y1 - tags.y0) * Math.random();
 
 						switch(leaf.tag_type) {
 							case "기술":
 								cx = tags.x0 + (tags.x1 - tags.x0) * Math.random();
+								colour_circle = circle_explain;
+								colour_text = text_explain;
 								break;
-							case "분석":
+							case "분석 및 해석":
 								cx = tags.x1 + (tags.x2 - tags.x1) * Math.random();
-								break;
-							case "해석":
-								cx = tags.x2 + (tags.x3 - tags.x2) * Math.random();
+								colour_circle = circle_analysis;
+								colour_text = text_analysis;
 								break;
 							default:
 								cx = tags.x0 + (tags.x3 - tags.x0) * Math.random();
 						}
 
-						r = rScale(map_degree.get(leaf.tag));
-					});
+						r = rScale(leaf.tag_count);
+
+						return {
+							"cx": cx,
+							"cy": cy,
+							"tag": leaf.tag,
+							"tag_num": leaf.tag_num,
+							"tag_type": leaf.tag_type,
+							"tag_count": leaf.tag_count,
+							"colour_circle": colour_circle,
+							"colour_text": colour_text
+						}
+					})
+					.entries(data);
 
 				//Make link data
-				var nodes_link;
+				// var nodes_link = ;
 
 				//Append drawing and tag groups
 				var drawing_g = svg.selectAll(".drawing")
@@ -120,7 +157,7 @@
 					.enter()
 					.append("g")
 					.attr("class", function(d) {
-						return "drawing drawing_code_" + d.drawing_code;
+						return "drawing title_num_" + d.values.title_num;
 					});
 
 				var tag_g = svg.selectAll(".tag")
@@ -128,42 +165,113 @@
 					.enter()
 					.append("g")
 					.attr("class", function(d) {
-						return "tag tag_code_" + d.tag_code;
+						return "tag tag_num_" + d.values.tag_num;
 					});
 
-				//Append drawing nodes and text
+				var hiding_class = {"show": false};
+				var showing_class = {"show": true};
+
+				//Append nodes for drawings
 				var r_basic = 10;
+
 				drawing_g.append("circle")
-					.attr("class", "node drawing")
 					.attr("cx", function(d){
-						return;
+						return d.values.cx;
 					})
 					.attr("cy", function(d) {
-						return;
+						return d.values.cy;
 					})
 					.attr("r", r_basic);
-				drawing_g.append("text")
-					.attr("class", "name drawing")
-					.text(function(d) {
-						return d.name_drawing;
+
+				//Implemnet tooltip
+				var tooltip_drawing = d3.select("body")
+					.selectAll(".tooltip")
+					.data(nodes_drawing)
+					.enter()
+					.append("div")
+					.attr("class", function(d) {
+						return "tooltip title_num_" + d.values.title_num;
+					})
+					.style("left", function(d) {
+						return d.values.cx + "px";
+					})
+					.style("top", function(d) {
+						return d.values.cy + "px";
 					});
 
-				//Append tag nodes
+				tooltip_drawing.append("p")
+					.text(function(d) {
+						return d.values.title;
+					});
+
+				//Mouse events of drawing_g
+				drawing_g.on("mouseover", function(d) {
+						d3.select("div" + d.values.selector)
+							.classed(showing_class);
+
+						d3.select(this)
+							.classed(showing_class);
+					})
+					.on("mouseout", function(d) {
+						d3.select("div" + d.values.selector)
+							.classed(hiding_class);
+
+						d3.select(this)
+							.classed(hiding_class);
+					})
+					.on("click", function(d) {
+						document.querySelector("div" + d.values.selector).classList.toggle("fix");
+						this.classList.toggle("fix");
+					});
+
+				//Append nodes for tags
 				tag_g.append("circle")
-					.attr("class", "node tag")
 					.attr("cx", function(d) {
-						return;
+						return d.values.cx;
 					})
 					.attr("cy", function(d) {
-						return;
+						return d.values.cy;
 					})
 					.attr("r", function(d) {
-						return rScale(d.degree);
+						return rScale(d.values.tag_count);
+					})
+					.attr("fill", function(d) {
+						return d.values.colour_circle;
 					});
+
 				tag_g.append("text")
-					.attr("class", "name tag")
 					.text(function(d) {
-						return d.name_tag;
+						return d.values.tag;
+					})
+					.attr("x", function(d) {
+						return d.values.cx;
+					})
+					.attr("y", function(d) {
+						return d.values.cy;
+					})
+					.attr("dy", function(d) {
+						var selector = "g.tag_num_" + d.values.tag_num + " circle";
+						return document.querySelector(selector).getAttribute("r") / 2;
+					})
+					.attr("text-anchor", "middle")
+					.attr("font-size", function(d) {
+						return tScale(d.values.tag_count);
+					})
+					.attr("fill", function(d) {
+						return d.values.colour_text;
+					});
+
+				//Mouse events of tag_g
+				tag_g.on("mouseover", function(d) {
+						d3.select(this)
+							.classed(showing_class);
+					})
+					.on("mouseout", function(d) {
+						d3.select(this)
+							.classed(hiding_class);
+					})
+					.on("click", function(d) {
+						this.classList.toggle("fix");
 					});
 
 				// //Append links
