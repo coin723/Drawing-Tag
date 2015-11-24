@@ -12,7 +12,7 @@
 				//Define basic variables
 				var margin = {top: 50, right: 50, bottom: 50, left: 50};
 				var width = window.innerWidth - margin.right - margin.left;
-				var height = width * 3 / 4 - margin.top - margin.bottom;
+				var height = (width + margin.right + margin.left) * 3 / 4 - margin.top - margin.bottom;
 
 				//Draw canvas
 				var svg = d3.select("body")
