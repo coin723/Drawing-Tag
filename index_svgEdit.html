@@ -4,8 +4,8 @@
 		<meta charset="utf-8" />
 		<title></title>
 		<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<link type="text/css" rel="stylesheet" href="CSS/stylesheet.css" />
-	</head>
+<!-- 		<link type="text/css" rel="stylesheet" href="CSS/stylesheet.css" />
+ -->	</head>
 	<body>
 		<script>
 			d3.csv("drawing-tag.csv", function(data) {
@@ -20,6 +20,9 @@
 					.attr("id", "container")
 					.attr("width", width + margin.right + margin.left)
 					.attr("height", height + margin.top + margin.bottom);
+
+				//Manual selection of drawing
+				var sel_num = "34";
 
 				//Convert drawing codes into numbers
 				data.forEach(function(d) {
@@ -42,8 +45,8 @@
 					.map(data, d3.map);
 
 				//Define scale
-				var r_min = 5;
-				var r_max = 30;
+				var r_min = 3;
+				var r_max = 20;
 				var t_min = r_min;
 				var t_max = r_max;
 
@@ -115,6 +118,10 @@
 						var circle_analysis = "#000088";
 						var text_explain = "#008800";
 						var text_analysis = "#234567";
+						var title_nums = [];
+						leaves.forEach(function(element) {
+							title_nums.push(element.title_num.toString());
+						});
 
 						cy = tags.y0 + (tags.y1 - tags.y0) * Math.random();
 
@@ -143,7 +150,8 @@
 							"tag_type": leaf.tag_type,
 							"tag_count": leaf.tag_count,
 							"colour_circle": colour_circle,
-							"colour_text": colour_text
+							"colour_text": "#000000",
+							"title_nums": title_nums
 						}
 					})
 					.entries(data);
@@ -155,6 +163,13 @@
 					.append("g")
 					.attr("class", function(d) {
 						return "drawing title_num_" + d.values.title_num;
+					})
+					.attr("opacity", function(d) {
+						if(d.values.title_num == sel_num) {
+							return "1";
+						} else {
+							return "0.3";
+						}
 					});
 
 				var tag_g = svg.selectAll(".tag")
@@ -163,6 +178,14 @@
 					.append("g")
 					.attr("class", function(d) {
 						return "tag tag_num_" + d.values.tag_num;
+					})
+					.attr("opacity", function(d) {
+						var test = d.values.title_nums.indexOf(sel_num);
+						if(test == -1) {
+							return 0.3;
+						} else {
+							return 1;
+						}
 					});
 
 				var hiding_class = {"show": false};
@@ -178,7 +201,8 @@
 					.attr("cy", function(d) {
 						return d.values.cy;
 					})
-					.attr("r", r_basic);
+					.attr("r", r_basic)
+					.attr("fill", "#335600");
 
 				//Implemnet tooltip
 				var tooltip_drawing = d3.select("body")
@@ -256,7 +280,8 @@
 					})
 					.attr("fill", function(d) {
 						return d.values.colour_text;
-					});
+					})
+					.attr("style", "font-family: sans-serif");
 
 				//Mouse events of tag_g
 				tag_g.on("mouseover", function(d) {
@@ -315,7 +340,14 @@
 					.attr("y2", function(d) {
 						return d.y2;
 					})
-					.attr("stroke", "#847385");
+					.attr("stroke", "#847385")
+					.attr("opacity", function(d) {
+						if(d.selector_drawing == ".title_num_" + sel_num + " circle") {
+							return "1";
+						} else {
+							return "0.1";
+						}
+					});
 			});
 		</script>
 	</body>
