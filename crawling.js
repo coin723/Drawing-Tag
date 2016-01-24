@@ -10,7 +10,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
                 if(!condition) {
                     // If condition still not fulfilled (timeout but condition is 'false')
                     console.log("'waitFor()' timeout");
-                    phantom.exit(1);
+//                    phantom.exit(1);
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
                     console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
@@ -21,31 +21,16 @@ function waitFor(testFx, onReady, timeOutMillis) {
         }, 250); //< repeat check every 250ms
 };
 
+console.log("hi");
+
 var webPage = require('webpage');
 var page = webPage.create();
 
 var fs = require('fs');
 
-//page.open('http://gmoma.ggcf.kr/archives/artwork/%ED%8C%8C%EB%A6%AC%EC%9D%98-%EB%B2%A0%EB%91%90%EC%9D%B8%EC%A1%B1-2', function(status) {
-//    console.log("Status: " + status);
-//    
-//    if(status === "success") {
-//        var fs = require('fs');
-//        var imgUrl = page.evaluate(function() {
-//            return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-//        });
-//        
-//        fs.write('example.txt', imgUrl, 'w');
-//    };
-//});
-
 var content = fs.read('drawing-tag-fetch.csv', 'utf-8');
 
 var lines = content.split("\n");
-    
-//    for(var i = 0; i < lines.length; i++) {
-//        console.log(i);
-//    };
     
 var addingColumn = [
     "imgUrl",
@@ -59,85 +44,100 @@ addingColumn.forEach(function(element) {
     lines[0] += "," + element;
 });
 
-var collectionSelector = "div.collection-title-wrap div.collection-info";
-
-function getInfo(header) {
-    var index = addingColumn.indexOf(header) - 1;
-    return document.querySelectorAll(collectionSelector)[index];
-};
-
-//function injectInfo(line) {
-//    var elements = line.split(",");
+//function getInfo(header) {
+//    var index = addingColumn.indexOf(header) - 1;
 //    
-//    var result = page.open(elements[3], function(status) {
-////        function getInfo(header) {
-////            var index = addingColumn.indexOf(header) - 1;
-////            
-////            return document.querySelectorAll(collectionSelector)[index];
-////        };
-//        
-//        return waitFor(function() {
-//            return page.evaluate(function() {
-//                return document.querySelector(collectionSelector);
-//            });
-//        }, function() {
-//            var imgUrl = page.evaluate(function() {
-//                return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-//            }),
-//                year = getInfo("year"),
-//                artist = getInfo("artist"),
-//                material = getInfo("material"),
-//                scale = getInfo("scale");
-//            return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
-//        });
-//    });
+//    var collectionSelector = "div.collection-title-wrap div.collection-info";
 //    
-//    console.log(result);
-//    
-//    setTimeout(next_line, 500);
-//};
-
-//for(var i = 1; i < lines.length; i++) {
-////    lines[i] += injectInfo(i);
-////    console.log(lines[i]);
-//    
-//    var line = lines[i];
-//    var elements = line.split(",");
-//    
-//    
-//    
-//    if(i === lines.length - 1){
-//        phantom.exit();
-//    };
+//    return page.evaluate(function(sel, i) {
+//        return document.querySelectorAll(sel)[i].innerHTML;
+//    }, 'collectionSelector', 'index');
 //};
 
 var count = 0;
-//
+
+var collectionSelector = "div.collection-title-wrap div.collection-info";
+
 function injectInfo(line) {
-//    element += injectInfo(index);
     var column = line.split(",");
+    var address = column[2];
     
-    var result = return page.open(column[3], function(status) {
+    var result = new String();
+    result = page.open(address, function(status) {
         if(status !== 'success') {
-            console.log("FAILED to load the address");
+            console.log("FAILED to load the address: " + address);
         } else {
-            var imgUrl = page.evaluate(function() {
+            return waitFor(function() {
+                return page.evaluate(function(sel) {
+                    return document.querySelector(sel);
+                }, 'collectionSelector');
+            }, function() {
+                var imgUrl = page.evaluate(function() {
                 return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
             }),
-                year = getInfo("year"),
-                artist = getInfo("artist"),
-                material = getInfo("material"),
-                scale = getInfo("scale");
+                year = page.evaluate(function(sel, i) {
+                    return document.querySelectorAll(sel)[i].innerHTML;
+                }, 'collectionSelector', addingColumn.indexOf("year") - 1),
+                artist = page.evaluate(function(sel, i) {
+                    return document.querySelectorAll(sel)[i].innerHTML;
+                }, 'collectionSelector', addingColumn.indexOf("artist") - 1),
+                material = page.evaluate(function(sel, i) {
+                    return document.querySelectorAll(sel)[i].innerHTML;
+                }, 'collectionSelector', addingColumn.indexOf("material") - 1),
+                scale = page.evaluate(function(sel, i) {
+                    return document.querySelectorAll(sel)[i].innerHTML;
+                }, 'collectionSelector', addingColumn.indexOf("scale") - 1);
+            
+            console.log(imgUrl);
             return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
+            });
+            
+//            var imgUrl = page.evaluate(function() {
+//                return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
+//            }),
+//                year = page.evaluate(function(sel, i) {
+//                    return document.querySelectorAll(sel)[i].innerHTML;
+//                }, 'collectionSelector', addingColumn.indexOf("year") - 1),
+//                artist = page.evaluate(function(sel, i) {
+//                    return document.querySelectorAll(sel)[i].innerHTML;
+//                }, 'collectionSelector', addingColumn.indexOf("artist") - 1),
+//                material = page.evaluate(function(sel, i) {
+//                    return document.querySelectorAll(sel)[i].innerHTML;
+//                }, 'collectionSelector', addingColumn.indexOf("material") - 1),
+//                scale = page.evaluate(function(sel, i) {
+//                    return document.querySelectorAll(sel)[i].innerHTML;
+//                }, 'collectionSelector', addingColumn.indexOf("scale") - 1);
+//            
+//            console.log(imgUrl);
+//            return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
         }
     });
     
-    waitFor(result, function() {
-        console.log(result);
-        console.log("This is for debugging\n");
-    });
+//    waitFor(result, function() {
+//        console.log(result);
+//        console.log("This is for debugging\n");
+//    });
     
+    return result;
     
+//    waitFor(function() {
+//        return page.open(address, function(status) {
+//            if(status !== 'success') {
+//                console.log("FAILED to load the address: " + address);
+//            } else {
+//                var imgUrl = page.evaluate(function() {
+//                    return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
+//                }),
+//                    year = getInfo("year"),
+//                    artist = getInfo("artist"),
+//                    material = getInfo("material"),
+//                    scale = getInfo("scale");
+//                return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
+//            }
+//        });
+//    }, console.log("succeeded to load elements"));
+    
+//    setTimeout(next_line, 5000);
 };
 
 function next_line() {
@@ -146,7 +146,12 @@ function next_line() {
     if(!line) {
         phantom.exit();
     }
-    injectInfo(line);
+    var output = injectInfo(line);
+    console.log(output);
+    
+    setTimeout(next_line, 3000);
 };
+
+lines.shift();
 
 next_line();
