@@ -21,10 +21,12 @@ function waitFor(testFx, onReady, timeOutMillis) {
         }, 250); //< repeat check every 250ms
 };
 
-console.log("hi");
-
 var webPage = require('webpage');
 var page = webPage.create();
+
+page.onConsoleMessage = function(msg) {
+  console.log(msg);
+};
 
 var fs = require('fs');
 
@@ -44,16 +46,6 @@ addingColumn.forEach(function(element) {
     lines[0] += "," + element;
 });
 
-//function getInfo(header) {
-//    var index = addingColumn.indexOf(header) - 1;
-//    
-//    var collectionSelector = "div.collection-title-wrap div.collection-info";
-//    
-//    return page.evaluate(function(sel, i) {
-//        return document.querySelectorAll(sel)[i].innerHTML;
-//    }, 'collectionSelector', 'index');
-//};
-
 var count = 0;
 
 var collectionSelector = "div.collection-title-wrap div.collection-info";
@@ -67,77 +59,42 @@ function injectInfo(line) {
         if(status !== 'success') {
             console.log("FAILED to load the address: " + address);
         } else {
+//            page.evaluate(function() {
+//                var dom = document.querySelector("html").innerHTML;
+//                console.log("dom is " + dom);
+//            });
             return waitFor(function() {
                 return page.evaluate(function(sel) {
                     return document.querySelector(sel);
-                }, 'collectionSelector');
+                }, collectionSelector);
             }, function() {
+                console.log("Evaluating onReady");
                 var imgUrl = page.evaluate(function() {
-                return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-            }),
+                    return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
+                }),
                 year = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
-                }, 'collectionSelector', addingColumn.indexOf("year") - 1),
+                }, collectionSelector, addingColumn.indexOf("year") - 1),
                 artist = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
-                }, 'collectionSelector', addingColumn.indexOf("artist") - 1),
+                }, collectionSelector, addingColumn.indexOf("artist") - 1),
                 material = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
-                }, 'collectionSelector', addingColumn.indexOf("material") - 1),
+                }, collectionSelector, addingColumn.indexOf("material") - 1),
                 scale = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
-                }, 'collectionSelector', addingColumn.indexOf("scale") - 1);
-            
-            console.log(imgUrl);
-            return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
-            });
-            
-//            var imgUrl = page.evaluate(function() {
-//                return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-//            }),
-//                year = page.evaluate(function(sel, i) {
-//                    return document.querySelectorAll(sel)[i].innerHTML;
-//                }, 'collectionSelector', addingColumn.indexOf("year") - 1),
-//                artist = page.evaluate(function(sel, i) {
-//                    return document.querySelectorAll(sel)[i].innerHTML;
-//                }, 'collectionSelector', addingColumn.indexOf("artist") - 1),
-//                material = page.evaluate(function(sel, i) {
-//                    return document.querySelectorAll(sel)[i].innerHTML;
-//                }, 'collectionSelector', addingColumn.indexOf("material") - 1),
-//                scale = page.evaluate(function(sel, i) {
-//                    return document.querySelectorAll(sel)[i].innerHTML;
-//                }, 'collectionSelector', addingColumn.indexOf("scale") - 1);
-//            
-//            console.log(imgUrl);
-//            return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
+                }, collectionSelector, addingColumn.indexOf("scale") - 1);
+                
+                console.log(imgUrl);
+                
+                var newData = imgUrl + "," + year + "," + artist + "," + material + "," + scale;
+                
+                return newData;
+            }, 10000);
         }
     });
     
-//    waitFor(result, function() {
-//        console.log(result);
-//        console.log("This is for debugging\n");
-//    });
-    
     return result;
-    
-//    waitFor(function() {
-//        return page.open(address, function(status) {
-//            if(status !== 'success') {
-//                console.log("FAILED to load the address: " + address);
-//            } else {
-//                var imgUrl = page.evaluate(function() {
-//                    return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-//                }),
-//                    year = getInfo("year"),
-//                    artist = getInfo("artist"),
-//                    material = getInfo("material"),
-//                    scale = getInfo("scale");
-//                return imgUrl + "," + year + "," + artist + "," + material + "," + scale;
-//            }
-//        });
-//    }, console.log("succeeded to load elements"));
-    
-//    setTimeout(next_line, 5000);
 };
 
 function next_line() {
@@ -145,11 +102,70 @@ function next_line() {
     var line = lines.shift();
     if(!line) {
         phantom.exit();
-    }
-    var output = injectInfo(line);
-    console.log(output);
+    } else {
+//        setTimeout(function() {
+//            var output = injectInfo(line);
+//            console.log(output);
+//        }, 10000);
+//        var output = injectInfo(line);
     
-    setTimeout(next_line, 3000);
+//        setTimeout(next_line, 10000);
+//        waitFor(function() {
+//            if(output !== undefined) {
+//                return output.length;
+//            }
+//        }, function() {
+//            console.log(output);
+//            setTimeout(next_line, 10000);
+//        }, 20000);
+        
+        var column = line.split(",");
+        var address = column[2];
+    
+//        var result = new String();
+        page.open(address, function(status) {
+            if(status !== 'success') {
+                console.log("FAILED to load the address: " + address);
+            } else {
+    //            page.evaluate(function() {
+    //                var dom = document.querySelector("html").innerHTML;
+    //                console.log("dom is " + dom);
+    //            });
+                waitFor(function() {
+                    return page.evaluate(function(sel) {
+                        return document.querySelector(sel);
+                    }, collectionSelector);
+                }, function() {
+                    console.log("Evaluating onReady");
+                    var imgUrl = page.evaluate(function() {
+                        return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
+                    }),
+                    year = page.evaluate(function(sel, i) {
+                        return document.querySelectorAll(sel)[i].innerHTML;
+                    }, collectionSelector, addingColumn.indexOf("year") - 1),
+                    artist = page.evaluate(function(sel, i) {
+                        return document.querySelectorAll(sel)[i].innerHTML;
+                    }, collectionSelector, addingColumn.indexOf("artist") - 1),
+                    material = page.evaluate(function(sel, i) {
+                        return document.querySelectorAll(sel)[i].innerHTML;
+                    }, collectionSelector, addingColumn.indexOf("material") - 1),
+                    scale = page.evaluate(function(sel, i) {
+                        return document.querySelectorAll(sel)[i].innerHTML;
+                    }, collectionSelector, addingColumn.indexOf("scale") - 1);
+
+//                    console.log(imgUrl);
+
+                    var newData = imgUrl + "," + year + "," + artist + "," + material + "," + scale;
+
+//                    return newData;
+                    console.log(newData);
+                    
+//                    setTimeout(next_line, 10000);
+                    next_line();
+                }, 10000);
+            }
+        });
+    }
 };
 
 lines.shift();
