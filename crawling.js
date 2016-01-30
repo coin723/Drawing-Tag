@@ -9,7 +9,7 @@ function waitFor(testFx, onReady, timeOutMillis) {
             } else {
                 if(!condition) {
                     // If condition still not fulfilled (timeout but condition is 'false')
-                    console.log("'waitFor()' timeout");
+                    console.log("'waitFor()' timeout at count " + count);
 //                    phantom.exit(1);
                 } else {
                     // Condition fulfilled (timeout and/or condition is 'true')
@@ -46,31 +46,27 @@ addingColumn.forEach(function(element) {
     lines[0] += "," + element;
 });
 
-var count = 0;
-
 var collectionSelector = "div.collection-title-wrap div.collection-info";
 
-function injectInfo(line) {
-    var column = line.split(",");
-    var address = column[2];
+var count = 0;
+
+function next_line() {
+    var line = lines.shift();
     
-    var result = new String();
-    result = page.open(address, function(status) {
-        if(status !== 'success') {
-            console.log("FAILED to load the address: " + address);
-        } else {
-//            page.evaluate(function() {
-//                var dom = document.querySelector("html").innerHTML;
-//                console.log("dom is " + dom);
-//            });
-            return waitFor(function() {
+    if(!line) {
+        phantom.exit();
+    } else {
+        var column = line.split(",");
+        var address = column[2];
+    
+        page.open(address, function(status) {
+            waitFor(function() {
                 return page.evaluate(function(sel) {
                     return document.querySelector(sel);
                 }, collectionSelector);
             }, function() {
-                console.log("Evaluating onReady");
                 var imgUrl = page.evaluate(function() {
-                    return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
+                    return document.querySelector("div.gallery-one img").getAttribute("src");
                 }),
                 year = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
@@ -84,86 +80,14 @@ function injectInfo(line) {
                 scale = page.evaluate(function(sel, i) {
                     return document.querySelectorAll(sel)[i].innerHTML;
                 }, collectionSelector, addingColumn.indexOf("scale") - 1);
-                
-                console.log(imgUrl);
-                
+
                 var newData = imgUrl + "," + year + "," + artist + "," + material + "," + scale;
-                
-                return newData;
-            }, 10000);
-        }
-    });
-    
-    return result;
-};
 
-function next_line() {
-    console.log("count: " + count++);
-    var line = lines.shift();
-    if(!line) {
-        phantom.exit();
-    } else {
-//        setTimeout(function() {
-//            var output = injectInfo(line);
-//            console.log(output);
-//        }, 10000);
-//        var output = injectInfo(line);
-    
-//        setTimeout(next_line, 10000);
-//        waitFor(function() {
-//            if(output !== undefined) {
-//                return output.length;
-//            }
-//        }, function() {
-//            console.log(output);
-//            setTimeout(next_line, 10000);
-//        }, 20000);
-        
-        var column = line.split(",");
-        var address = column[2];
-    
-//        var result = new String();
-        page.open(address, function(status) {
-            if(status !== 'success') {
-                console.log("FAILED to load the address: " + address);
-            } else {
-    //            page.evaluate(function() {
-    //                var dom = document.querySelector("html").innerHTML;
-    //                console.log("dom is " + dom);
-    //            });
-                waitFor(function() {
-                    return page.evaluate(function(sel) {
-                        return document.querySelector(sel);
-                    }, collectionSelector);
-                }, function() {
-                    console.log("Evaluating onReady");
-                    var imgUrl = page.evaluate(function() {
-                        return document.querySelector("div.gallery-one img").getAttribute("src") + "\n";
-                    }),
-                    year = page.evaluate(function(sel, i) {
-                        return document.querySelectorAll(sel)[i].innerHTML;
-                    }, collectionSelector, addingColumn.indexOf("year") - 1),
-                    artist = page.evaluate(function(sel, i) {
-                        return document.querySelectorAll(sel)[i].innerHTML;
-                    }, collectionSelector, addingColumn.indexOf("artist") - 1),
-                    material = page.evaluate(function(sel, i) {
-                        return document.querySelectorAll(sel)[i].innerHTML;
-                    }, collectionSelector, addingColumn.indexOf("material") - 1),
-                    scale = page.evaluate(function(sel, i) {
-                        return document.querySelectorAll(sel)[i].innerHTML;
-                    }, collectionSelector, addingColumn.indexOf("scale") - 1);
+                console.log(newData.replace("\n", ""));
 
-//                    console.log(imgUrl);
-
-                    var newData = imgUrl + "," + year + "," + artist + "," + material + "," + scale;
-
-//                    return newData;
-                    console.log(newData);
-                    
-//                    setTimeout(next_line, 10000);
-                    next_line();
-                }, 10000);
-            }
+                count++;
+                setTimeout(next_line, 1000);
+            });
         });
     }
 };
